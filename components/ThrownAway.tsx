@@ -1,10 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, Animated } from 'react-native';
-import { moderateScale as ms } from '../constants/scaling';
-import { images } from '../constants/images';
+import { images, moderateScale as ms } from '../constants';
 import { randInt } from '../utils';
 
-export const ThrownAway = () => {
+const ThrownAway = () => {
   const opacity = useRef(new Animated.Value(0)).current;
 
   const spin = opacity.interpolate({
@@ -68,6 +67,8 @@ export const ThrownAway = () => {
     </View>
   );
 };
+
+export default ThrownAway;
 
 const styles = StyleSheet.create({
   thrownAwayBranch: {

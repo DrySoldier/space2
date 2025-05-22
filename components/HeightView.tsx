@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
 import { moderateScale as ms } from '../constants';
 
-export const HeightView = ({ callback }) => {
+const HeightView = ({ callback }: { callback: () => void }) => {
   const heightValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -15,3 +15,5 @@ export const HeightView = ({ callback }) => {
 
   return <Animated.View style={{ transform: [{ scaleY: heightValue }], height: ms(200) }} />;
 };
+
+export default HeightView;

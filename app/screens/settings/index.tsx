@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, TouchableOpacity, Text, Animated, Easing, Alert, StyleSheet, ImageBackground } from 'react-native';
-import { moderateScale as ms } from '../../constants/scaling';
-import { images } from '../../constants/images';
-import { removeData } from '../../utils/asyncData';
+import { images, moderateScale as ms } from '../../../constants';
+import { removeData } from '../../../utils/asyncData';
+import { Link } from 'expo-router';
 
-const Settings = ({ navigation }) => {
+const Settings = () => {
   const buttonDegree = useRef(new Animated.Value(0)).current;
   const astroDegree = useRef(new Animated.Value(0)).current;
   const astroPosition = useRef(new Animated.Value(0)).current;
@@ -81,7 +81,7 @@ const Settings = ({ navigation }) => {
       />
       <View style={styles.buttonContainer}>
         <Animated.View style={{ transform: [{ rotate: spin }], paddingLeft: 125 }}>
-          <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+          <Link href="..">
             <ImageBackground
               style={styles.button}
               resizeMode="stretch"
@@ -89,7 +89,7 @@ const Settings = ({ navigation }) => {
             >
               <Text style={styles.buttonText}>BACK</Text>
             </ImageBackground>
-          </TouchableOpacity>
+          </Link>
         </Animated.View>
         <View style={{ flexDirection: 'row' }}>
           <Animated.View style={{ transform: [{ rotate: spin }] }}>
@@ -186,11 +186,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontFamily: 'GillSans-Bold',
     textAlign: 'center'
-  },
-  buttonContainer: {
-    flex: 3,
-    alignItems: 'center',
-    justifyContent: 'space-evenly',
   },
   astro: {
     height: ms(100),
