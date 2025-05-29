@@ -41,22 +41,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
   },
-  branchContainer: {
-    flex: 1,
-    paddingBottom: ms(350),
-    width: '100%',
-    position: 'absolute',
-    alignItems: 'center',
-  },
-  branch: {
-    width: ms(100),
-    height: ms(100),
-  },
   score: {
     color: 'white',
     fontSize: ms(25),
     alignSelf: 'center',
     fontFamily: 'GillSans-Bold',
+  },
+  branchContainer: {
+    flex: 1,
+    paddingBottom: ms(550),
+    width: '100%',
+    position: 'absolute',
   },
   ground: {
     width: '100%',

@@ -1,24 +1,25 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, Animated } from 'react-native';
-import { images, moderateScale as ms } from '../constants';
+import { moderateScale as ms } from '../constants';
 import { randInt } from '../utils';
+import Branch from './Branch';
 
-const ThrownAway = () => {
+const ThrownAway = ({ side }: { side: Number }) => {
   const opacity = useRef(new Animated.Value(0)).current;
 
   const spin = opacity.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', `${randInt(5, 290)}deg`],
+    outputRange: ['0deg', `${randInt(-60, 60)}deg`],
   });
 
   const marginTop = opacity.interpolate({
     inputRange: [0, 0.5, 1],
-    outputRange: [50, randInt(100, 200), randInt(50, 150)],
+    outputRange: [50, 500, 1000],
   });
 
   const marginLeft = opacity.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, randInt(300, 500)],
+    outputRange: [0, randInt(-500, 500)],
   });
 
   const scale = opacity.interpolate({
@@ -41,11 +42,10 @@ const ThrownAway = () => {
 
   return (
     <View style={styles.thrownAwayContainer}>
-      <Animated.Image
-        source={images.elevatorTile}
+      <Animated.View
         style={[
-          styles.thrownAwayBranch,
           {
+            alignItems: 'center',
             opacity: opacityInterpolate,
             transform: [
               {
@@ -63,7 +63,9 @@ const ThrownAway = () => {
             ],
           },
         ]}
-      />
+      >
+        <Branch side={side} />
+      </Animated.View>
     </View>
   );
 };

@@ -5,49 +5,39 @@ import {
   Animated,
   TouchableOpacity,
   ImageBackground,
-  Image,
+  FlatList,
 } from "react-native";
-import { ThrownAway, HeightView } from "../../../components";
+import { ThrownAway, HeightView, Branch } from "../../../components";
 import { images, moderateScale as ms } from "../../../constants";
 import { randInt } from "../../../utils";
 
 import styles from "./styles";
 import GameOverModal from "../../../components/GameOverModal";
 
-type Side = 'left' | 'right';
+type TSide = "left" | "right";
+
+const defaultBranches = [0, randInt(0, 2), 0, 0, 0, 0, 0, 0];
 
 const Game = () => {
   // Current side player is on
   const [currentSide, setSide] = useState("left");
   // 0 - no branch, 1 - left side branch, 2 - right side branch
   // The rantInts set up random branches on the top
-  const defaultBranches = [0, randInt(0, 2), 0, randInt(0, 2), 0, 0, 0, 0];
-  const [branches, setNextBranch] = useState(defaultBranches);
+  const [branches, setBranches] = useState<Number[]>(defaultBranches);
   // Used to space out branches
   const [lastBranch, setLastBranch] = useState(-1);
   // All the branch views
-  const [branchViews, setBranchViews] = useState<React.JSX.Element[]>([]);
   // Array to store thrown away squares
   const [thrownAwayArr, setThrownAwayArr] = useState<React.JSX.Element[]>([]);
-  // A view set at the bottom, so to animate the entire stack of tiles going down
-  const heightFinished = () => {
-    const heightArrCopy = [...heightArr];
-    heightArrCopy.pop();
-    setHeightArr(heightArrCopy);
 
-    setBranchStatus();
-  };
+  const [branchesElevated, setBranchesElevated] = useState(0);
 
-  const [heightArr, setHeightArr] = useState([
-    <HeightView key={randInt(0, 99999)} callback={heightFinished} />,
-  ]);
-  // Score
   const [score, setScore] = useState(-1);
-  // Game over modal
-  const [modal, setModal] = useState(false);
   // current player model TODO: Set up animated sprite
-  const defaultPosition = images["astro-left-2"];
+  const defaultPosition = images["astro-right-2"];
+
   const [playerModel, setPlayerModel] = useState(defaultPosition);
+  // animation for the astronaut
   const [step, setStep] = useState(false);
   const [gameOver, setGameOver] = useState(false);
 
@@ -69,98 +59,54 @@ const Game = () => {
     outputRange: [0, 300],
   });
 
-  const setBranchStatus = () => {
-    const branchArr = branches.map((element) => {
-      switch (element) {
-        case 0:
-          return (
-            <ImageBackground
-              source={images.elevatorTile}
-              key={randInt(0, 99999)}
-              style={[styles.branch]}
-            />
-          );
-
-        case 1:
-          return (
-            <ImageBackground
-              source={images.elevatorTile}
-              key={randInt(0, 99999)}
-              style={styles.branch}
-            >
-              <Image
-                style={{
-                  height: ms(100),
-                  width: ms(100),
-                  marginLeft: ms(-100),
-                }}
-                source={images.obstacleTile}
-              />
-            </ImageBackground>
-          );
-
-        case 2:
-          return (
-            <ImageBackground
-              source={images.elevatorTile}
-              key={randInt(0, 99999)}
-              style={styles.branch}
-            >
-              <Image
-                style={{
-                  height: ms(100),
-                  width: ms(100),
-                  marginLeft: ms(100),
-                  transform: [{ rotate: "180deg" }],
-                }}
-                source={images.obstacleTile}
-              />
-            </ImageBackground>
-          );
-
-        default:
-          return (
-            <ImageBackground
-              source={images.elevatorTile}
-              key={randInt(0, 99999)}
-              style={[styles.branch]}
-            />
-          );
-      }
-    });
-    setBranchViews(branchArr);
+  const animateAstronautIn = () => {
+    astroSwapSideVal.setValue(-300);
+    astroSpin.setValue(1);
+    
+    Animated.parallel([
+      Animated.timing(astroSwapSideVal, {
+        toValue: ms(-70),
+        duration: 750,
+        useNativeDriver: true,
+      }),
+      Animated.timing(astroSpin, {
+        toValue: 0,
+        duration: 750,
+        useNativeDriver: true,
+      })
+    ]).start();
   };
 
-  const _handlePress = (side: Side) => {
+  const handlePress = (side: TSide) => {
     setStep(!step);
     setSide(side);
 
-    const newThrownAway = <ThrownAway key={randInt(0, 99999)} />;
-    setThrownAwayArr([newThrownAway, ...thrownAwayArr]);
+    setThrownAwayArr([
+      ...thrownAwayArr,
+      <ThrownAway
+        side={branches[branches.length - 1]}
+        key={randInt(0, 9999999)}
+      />,
+    ]);
 
     let copy = [...branches];
     copy.pop();
-    copy.unshift(_generateNewBranch());
-    setNextBranch(copy);
-
-    setHeightArr([
-      ...heightArr,
-      <HeightView key={randInt(0, 99999)} callback={heightFinished} />,
-    ]);
+    copy.unshift(generateNewBranch());
+    setBranches(copy);
 
     // Check to see if player is chopping tree below branch
     if (
-      (side === "left" && branches[branches.length - 1] === 1) ||
-      (side === "right" && branches[branches.length - 1] === 2)
+      (side === "left" && branches[branches.length - 2] === 1) ||
+      (side === "right" && branches[branches.length - 2] === 2)
     ) {
       setGameOver(true);
       return;
     } else {
-      setScore(score + 1);
+      setScore((prevState) => prevState + 100);
     }
   };
 
-  const _generateNewBranch = () => {
+  const generateNewBranch = () => {
     let nextBranch = randInt(0, 2);
 
     // Make empty branches a little more rare
@@ -178,10 +124,6 @@ const Game = () => {
   };
 
   useEffect(() => {
-    setBranchStatus();
-  }, []);
-
-  useEffect(() => {
     let toValue = 0;
 
     if (currentSide === "left") {
@@ -194,7 +136,7 @@ const Game = () => {
 
     Animated.timing(astroSwapSideVal, {
       toValue: toValue,
-      duration: 25,
+      duration: 100,
       useNativeDriver: true,
     }).start();
   }, [currentSide]);
@@ -210,10 +152,10 @@ const Game = () => {
   }, [step, currentSide]);
 
   useEffect(() => {
+    let timerInterval: any;
+
     if (gameOver) {
-      setThrownAwayArr([]);
-      setNextBranch(defaultBranches);
-      setModal(true);
+      clearInterval(timerInterval);
 
       Animated.timing(astroSpin, {
         toValue: 1,
@@ -221,26 +163,26 @@ const Game = () => {
         useNativeDriver: true,
       }).start();
     } else if (!gameOver) {
-      setBranchStatus();
-      setPlayerModel(defaultPosition);
-      setModal(false);
-      _handlePress("right");
-      setScore(0);
+      timerInterval = setInterval(() => {
+        setScore((prevState) => prevState - 20);
+      }, 1000);
 
-      Animated.timing(astroSpin, {
-        toValue: 0,
-        duration: 0,
-        useNativeDriver: true,
-      }).start();
+      animateAstronautIn();
+      setThrownAwayArr([]);
+      setBranches(defaultBranches);
+      setPlayerModel(defaultPosition);
+      setScore(0);
     }
-  }, [gameOver, setGameOver]);
+
+    return () => clearInterval(timerInterval);
+  }, [gameOver]);
 
   return (
     <View style={styles.container}>
       <ImageBackground source={images.space} style={styles.container}>
         <TouchableOpacity
           style={styles.leftSide}
-          onPress={() => _handlePress("left")}
+          onPress={() => handlePress("left")}
         >
           <View style={styles.side} />
         </TouchableOpacity>
@@ -249,15 +191,21 @@ const Game = () => {
 
         <TouchableOpacity
           style={styles.rightSide}
-          onPress={() => _handlePress("right")}
+          onPress={() => handlePress("right")}
         >
           <View style={styles.side} />
         </TouchableOpacity>
 
-        <View style={styles.branchContainer} pointerEvents="none">
-          {heightArr}
-          {branchViews}
-        </View>
+        <FlatList
+          pointerEvents="none"
+          style={styles.branchContainer}
+          contentContainerStyle={{
+            alignItems: "center",
+          }}
+          ListHeaderComponent={() => <HeightView />}
+          data={branches}
+          renderItem={({ item }) => <Branch side={item} />}
+        />
 
         <View style={styles.playerContainer} pointerEvents="none">
           <Animated.Image
@@ -290,7 +238,7 @@ const Game = () => {
           {thrownAwayArr}
         </View>
         <GameOverModal
-          visible={modal}
+          visible={gameOver}
           score={score}
           resetGame={() => setGameOver(false)}
         />

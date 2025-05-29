@@ -3,11 +3,12 @@ import { View, TouchableOpacity, Text, Animated, Easing, Alert, StyleSheet, Imag
 import { images, moderateScale as ms } from '../../../constants';
 import { removeData } from '../../../utils/asyncData';
 import { Link } from 'expo-router';
+import { randInt } from '../../../utils';
 
 const Settings = () => {
   const buttonDegree = useRef(new Animated.Value(0)).current;
-  const astroDegree = useRef(new Animated.Value(0)).current;
   const astroPosition = useRef(new Animated.Value(0)).current;
+  const astroRotate = useRef(new Animated.Value(0)).current;
 
   const [musicMuted, setMusicMuted] = useState(false);
 
@@ -21,14 +22,14 @@ const Settings = () => {
     outputRange: ['10deg', '-10deg'],
   });
 
-  const astro360 = astroDegree.interpolate({
+  const astro360 = astroRotate.interpolate({
     inputRange: [0, 1],
-    outputRange: ['360deg', '0deg'],
+    outputRange: [`0deg`, `360deg`],
   });
 
   const xPosition = astroPosition.interpolate({
     inputRange: [0, 1],
-    outputRange: [-100, 500],
+    outputRange: [-100, 650],
   });
 
   const startButtonRotateAnimation = () => {
@@ -41,44 +42,48 @@ const Settings = () => {
     }).start(() => startButtonRotateAnimation());
   };
 
-  const startAstroRotateAnimation = () => {
-    astroDegree.setValue(0);
-
-    Animated.timing(astroDegree, {
-      toValue: 1,
-      duration: 10000,
-      easing: Easing.linear,
-      useNativeDriver: true
-    }).start(() => startAstroRotateAnimation());
-  };
-
-  const startAstroPositionAnimation = () => {
+  const startAstroAnimation = () => {
+    const newDuration = randInt(6000, 18000);
+    const newRotate = Math.random();
     astroPosition.setValue(0);
 
-    Animated.timing(astroPosition, {
-      toValue: 1,
-      duration: 15000,
-      easing: Easing.ease,
-      useNativeDriver: true
-    }).start(() => startAstroPositionAnimation());
+    Animated.parallel([
+      Animated.timing(astroPosition, {
+        toValue: 1,
+        duration: newDuration,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+      Animated.timing(astroRotate, {
+        toValue: newRotate,
+        duration: newDuration,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    ]).start(() => startAstroAnimation());
   };
 
   useEffect(() => {
     startButtonRotateAnimation();
-    startAstroRotateAnimation();
-    startAstroPositionAnimation();
+    startAstroAnimation();
   }, []);
 
   return (
     <ImageBackground source={images.space} style={{ flex: 1 }}>
-      <Animated.Image
+      <Animated.View
         style={{
           ...styles.astro,
-          transform: [{ rotate: astro360 }, { translateX: xPosition }],
-          top: ms(500),
+          transform: [{ translateX: xPosition }],
         }}
-        source={images['astro-right-2']}
-      />
+      >
+        <Animated.Image
+          style={{
+            ...styles.astro,
+            transform: [{ rotateZ: astro360 }],
+          }}
+          source={images["astro-right-2"]}
+        />
+      </Animated.View>
       <View style={styles.buttonContainer}>
         <Animated.View style={{ transform: [{ rotate: spin }], paddingLeft: 125 }}>
           <Link href="..">
